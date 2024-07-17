@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+Ваша корзина
+{% endblock %}
+
+{% block content %}
+    <h1>Ваша корзина</h1>
+    <table class="cart">
+        <thead>
+            <tr>
+                <th>Изображение</th>
+                <th>Продукт</th>
+                <th>Кол-во</th>
+                <th>Удалить</th>
+                <th>Цена</th>
+                <th>Итог</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in cart %}
+                {% with product=item.product %}
+                    <tr>
+                        <td>
+                            <a href="{{ product.get_absolute_url }}">
+                                <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'img/no_image.png' %}{% endif %}">
+                            </a>
+                        </td>
+                        <td>{{ product.name }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>
+                            <form action="{% url 'cart:cart_remove' product.id %}" method="post">
+                                {% csrf_token %}
+                                <input type="submit" value="Удалить">
+                            </form>
+                        </td>
+                        <td class="num">{{ item.price }} рублей</td>
+                        <td class="num">{{ item.total_price }} рублей</td>
+                    </tr>
+                {% endwith %}
+            {% endfor %}
+
+            {% if cart.coupon %}
+                <tr class="subtotal">
+                    <td>Итог</td>
+                    <td colspan="4"></td>
+                    <td class="num">{{ cart.get_total_price }} рублей</td>
+                </tr>
+                <tr>
+                    <td>{{ cart.coupon.code }} купон (скидка: {{ cart.coupon.discount }}% )</td>
+                    <td colspan="4"> <form action="{% url 'coupons:coupon_delete' %}" method="post">
+                                {% csrf_token %}
+                                <input type="submit" value="Удалить">
+                            </form></td>
+                    <td class="num neg">- {{ cart.get_discount|floatformat:"2" }} рублей</td>
+                </tr>
+            {% endif %}
+
+            <tr class="total">
+                <td>Итог</td>
+                <td colspan="4"></td>
+                <td class="num">{{ cart.get_total_price_after_discount|floatformat:"2" }} рублей</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p class="text-left">
+        <form action="{% url 'coupons:coupon_apply' %}" method="post">
+            {% csrf_token %}
+            {{ coupon_apply_form }}
+            <input type="submit" value="Apply">
+        </form>
+    </p>
+
+    <p class="text-right">
+        <a href="{% url 'shop:product_list' %}" class="button light">Продолжить покупки</a>
+        <a href="{% url 'orders:order_create' %}" class="button">Оплатить</a>
+    </p>
+{% endblock %}

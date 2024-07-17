@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Оплата{% endblock %}
+
+{% block content %}
+<h1>Checkout</h1>
+<div class="order-info">
+    <h3>Ваш заказ:</h3>
+    <ul>
+        {% for item in cart %}
+        <li>
+            {{ item.quantity }}x {{ item.product.name }}
+            <span>${{ item.total_price }}</span>
+        </li>
+        {% endfor %}
+        {% if cart.coupon %}
+        <li>
+            "{{ cart.coupon.code }}" ({{ cart.coupon.discount }}% off)
+            <span>- {{ cart.get_discount|floatformat:"2" }} рублей</span>
+        </li>
+        {% endif %}
+    </ul>
+   <p>Итог: {{ cart.get_total_price_after_discount|floatformat:"2" }} рублей</p>
+</div>
+<form action="." method="post" class="order-form">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <p><input type="submit" value="Заказать"></p>
+</form>
+{% endblock %}
